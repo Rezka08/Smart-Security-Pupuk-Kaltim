@@ -1,27 +1,66 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+namespace App\Models;
 
-return new class extends Migration
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Notifications\Notifiable;
+
+class User extends Authenticatable
 {
-    public function up(): void
+    use HasFactory, Notifiable;
+
+    protected $fillable = [
+        'username',
+        'password',
+        'full_name',
+        'role',
+        'is_active',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
+    // Relationships
+    public function cctvLogs()
     {
-        Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('username')->unique();
-            $table->string('password');
-            $table->string('full_name');
-            $table->enum('role', ['admin', 'security', 'maintenance'])->default('security');
-            $table->boolean('is_active')->default(true);
-            $table->rememberToken();
-            $table->timestamps();
-        });
+        return $this->hasMany(CctvLog::class);
     }
 
-    public function down(): void
+    public function inventoryChecks()
     {
-        Schema::dropIfExists('users');
+        return $this->hasMany(InventoryCheck::class);
     }
-};
+
+    public function reportedTickets()
+    {
+        return $this->hasMany(MaintenanceTicket::class, 'reporter_id');
+    }
+
+    public function assignedTickets()
+    {
+        return $this->hasMany(MaintenanceTicket::class, 'technician_id');
+    }
+
+    // Helper methods
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isSecurity()
+    {
+        return $this->role === 'security';
+    }
+
+    public function isMaintenance()
+    {
+        return $this->role === 'maintenance';
+    }
+}
