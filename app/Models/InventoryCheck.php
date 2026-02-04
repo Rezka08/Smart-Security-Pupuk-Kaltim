@@ -1,25 +1,33 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+namespace App\Models;
 
-return new class extends Migration
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class InventoryCheck extends Model
 {
-    public function up(): void
+    use HasFactory;
+
+    protected $fillable = [
+        'user_id',
+        'check_date',
+        'shift',
+        'pos_location',
+    ];
+
+    protected $casts = [
+        'check_date' => 'date',
+    ];
+
+    // Relationships
+    public function user()
     {
-        Schema::create('inventory_checks', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->date('check_date');
-            $table->enum('shift', ['A', 'B', 'C', 'D']);
-            $table->string('pos_location');
-            $table->timestamps();
-        });
+        return $this->belongsTo(User::class);
     }
 
-    public function down(): void
+    public function details()
     {
-        Schema::dropIfExists('inventory_checks');
+        return $this->hasMany(InventoryCheckDetail::class, 'check_id');
     }
-};
+}

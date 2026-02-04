@@ -1,32 +1,55 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+namespace App\Models;
 
-return new class extends Migration
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class MaintenanceTicket extends Model
 {
-    public function up(): void
+    use HasFactory;
+
+    protected $fillable = [
+        'ticket_code',
+        'reporter_id',
+        'technician_id',
+        'source_cctv_log_id',
+        'source_inv_detail_id',
+        'issue_description',
+        'status',
+        'resolution_notes',
+    ];
+
+    // Relationships
+    public function reporter()
     {
-        Schema::create('maintenance_tickets', function (Blueprint $table) {
-            $table->id();
-            $table->string('ticket_code')->unique();
-            $table->foreignId('reporter_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('technician_id')->nullable()->constrained('users')->onDelete('set null');
-            
-            // Polymorphic relation fields
-            $table->foreignId('source_cctv_log_id')->nullable()->constrained('cctv_logs')->onDelete('set null');
-            $table->foreignId('source_inv_detail_id')->nullable()->constrained('inventory_check_details')->onDelete('set null');
-            
-            $table->text('issue_description');
-            $table->enum('status', ['Open', 'In Progress', 'Resolved', 'Closed'])->default('Open');
-            $table->text('resolution_notes')->nullable();
-            $table->timestamps();
-        });
+        return $this->belongsTo(User::class, 'reporter_id');
     }
 
-    public function down(): void
+    public function technician()
     {
-        Schema::dropIfExists('maintenance_tickets');
+        return $this->belongsTo(User::class, 'technician_id');
     }
-};
+
+    public function sourceCctvLog()
+    {
+        return $this->belongsTo(CctvLog::class, 'source_cctv_log_id');
+    }
+
+    public function sourceInventoryDetail()
+    {
+        return $this->belongsTo(InventoryCheckDetail::class, 'source_inv_detail_id');
+    }
+
+    // Helper method to generate ticket code
+    public static function generateTicketCode()
+    {
+        $prefix = 'TKT';
+        $date = now()->format('Ymd');
+        $lastTicket = self::whereDate('created_at', now())->latest()->first();
+        
+        $number = $lastTicket ? (int)substr($lastTicket->ticket_code, -4) + 1 : 1;
+        
+        return $prefix . $date . str_pad($number, 4, '0', STR_PAD_LEFT);
+    }
+}

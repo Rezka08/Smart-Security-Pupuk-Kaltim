@@ -1,25 +1,34 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+namespace App\Models;
 
-return new class extends Migration
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class InventoryCheckDetail extends Model
 {
-    public function up(): void
+    use HasFactory;
+
+    protected $fillable = [
+        'check_id',
+        'item_id',
+        'condition',
+        'remarks',
+    ];
+
+    // Relationships
+    public function inventoryCheck()
     {
-        Schema::create('inventory_check_details', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('check_id')->constrained('inventory_checks')->onDelete('cascade');
-            $table->foreignId('item_id')->constrained('inventory_items')->onDelete('cascade');
-            $table->enum('condition', ['Baik', 'Rusak']);
-            $table->text('remarks')->nullable();
-            $table->timestamps();
-        });
+        return $this->belongsTo(InventoryCheck::class, 'check_id');
     }
 
-    public function down(): void
+    public function inventoryItem()
     {
-        Schema::dropIfExists('inventory_check_details');
+        return $this->belongsTo(InventoryItem::class, 'item_id');
     }
-};
+
+    public function maintenanceTicket()
+    {
+        return $this->hasOne(MaintenanceTicket::class, 'source_inv_detail_id');
+    }
+}
