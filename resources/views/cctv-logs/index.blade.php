@@ -14,6 +14,42 @@
     </div>
 </div>
 
+<div class="card mb-3 border-primary">
+    <div class="card-body py-3">
+        <form action="{{ route('cctv-logs.index') }}" method="GET" class="row g-2 align-items-end">
+            <div class="col-auto">
+                <label for="date" class="form-label mb-0 fw-semibold"><i class="bi bi-calendar3"></i> Pilih Tanggal</label>
+            </div>
+            <div class="col-auto">
+                <input type="date" 
+                       name="date" 
+                       id="date" 
+                       value="{{ $selectedDate }}" 
+                       class="form-control"
+                       max="{{ now()->format('Y-m-d') }}">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search"></i> Tampilkan
+                </button>
+            </div>
+            <div class="col-auto">
+                <a href="{{ route('cctv-logs.index', ['date' => now()->format('Y-m-d')]) }}" class="btn btn-outline-secondary btn-sm">
+                    Hari Ini
+                </a>
+            </div>
+            <div class="col-auto">
+                <a href="{{ route('cctv-logs.index', ['date' => now()->subDay()->format('Y-m-d')]) }}" class="btn btn-outline-secondary btn-sm">
+                    Kemarin
+                </a>
+            </div>
+        </form>
+        <p class="mb-0 mt-2 text-muted small">
+            <i class="bi bi-info-circle"></i> Menampilkan log untuk tanggal <strong>{{ \Carbon\Carbon::parse($selectedDate)->locale('id')->translatedFormat('l, d F Y') }}</strong>
+        </p>
+    </div>
+</div>
+
 <div class="card">
     <div class="card-body">
         <div class="table-responsive">
@@ -62,7 +98,11 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="text-center text-muted">Belum ada data log CCTV</td>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <i class="bi bi-calendar-x display-6 d-block mb-2 text-secondary"></i>
+                            Belum ada data log CCTV untuk tanggal tersebut.<br>
+                            <small>Pilih tanggal lain atau <a href="{{ route('cctv-logs.create') }}">input log baru</a></small>
+                        </td>
                     </tr>
                     @endforelse
                 </tbody>
